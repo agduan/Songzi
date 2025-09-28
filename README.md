@@ -1,6 +1,8 @@
 # Songzi
 A Chinese text complexity analyzer that color-codes characters by HSK level and provides instant translations.
 
+![Songzi Screenshot](assets/screenshot.png)
+
 ## Features
 
 - **HSK Level Analysis**: Characters are color-coded by difficulty level (HSK 1-6)

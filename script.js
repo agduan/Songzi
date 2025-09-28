@@ -59,15 +59,15 @@ async function getPinyinForChar(char) {
         const data = await response.json();
         
         if (data && data[0] && data[0][0] && data[0][0][0]) {
-            const pinyin = data[0][0][0];
-            
-            // Initialize cache entry if it doesn't exist
-            if (!unknownCharCache[char]) {
-                unknownCharCache[char] = {};
+            const result = data[0][0][0];
+            // Check if the result looks like pinyin (contains only letters and maybe spaces)
+            if (result && /^[a-zA-Z\s]+$/.test(result) && result.length < 20) {
+                if (!unknownCharCache[char]) {
+                    unknownCharCache[char] = {};
+                }
+                unknownCharCache[char].pinyin = result;
+                return result;
             }
-            unknownCharCache[char].pinyin = pinyin;
-            
-            return pinyin;
         }
     } catch (error) {
         console.error('Pinyin lookup error:', error);
@@ -401,9 +401,7 @@ const defaultLyrics = `你问我爱你有多深
 你问我爱你有多深
 我爱你有几分
 我的情不移 我的爱不变
-月亮代表我的心
-
-测试未知字符：魑魅魍魉`;
+月亮代表我的心`;
 
 // Set default text when page loads
 document.addEventListener('DOMContentLoaded', () => {
