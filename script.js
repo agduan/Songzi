@@ -17,6 +17,9 @@ const translationCache = {
     "我的情不移 我的爱不变": "My feelings don't change, my love doesn't change"
 };
 
+// Cache for unknown character lookups
+const unknownCharCache = {};
+
 // Google Translate function using the free google-translate-api
 async function translateText(text) {
     if (translationCache[text]) {
@@ -40,6 +43,92 @@ async function translateText(text) {
     } catch (error) {
         console.error('Translation error:', error);
         return text; // Return original text if translation fails
+    }
+}
+
+// Function to get pinyin for a single character
+async function getPinyinForChar(char) {
+    if (unknownCharCache[char] && unknownCharCache[char].pinyin) {
+        return unknownCharCache[char].pinyin;
+    }
+    
+    try {
+        // Use a free pinyin API or service
+        // For now, we'll use a simple approach with Google Translate's romanization
+        const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=rm&q=${encodeURIComponent(char)}`);
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const pinyin = data[0][0][0];
+            
+            // Initialize cache entry if it doesn't exist
+            if (!unknownCharCache[char]) {
+                unknownCharCache[char] = {};
+            }
+            unknownCharCache[char].pinyin = pinyin;
+            
+            return pinyin;
+        }
+    } catch (error) {
+        console.error('Pinyin lookup error:', error);
+    }
+    
+    return ""; // Return empty string if lookup fails
+}
+
+// Function to get translation for a single character
+async function getTranslationForChar(char) {
+    if (unknownCharCache[char] && unknownCharCache[char].translation) {
+        return unknownCharCache[char].translation;
+    }
+    
+    try {
+        const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q=${encodeURIComponent(char)}`);
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const translation = data[0][0][0];
+            
+            // Initialize cache entry if it doesn't exist
+            if (!unknownCharCache[char]) {
+                unknownCharCache[char] = {};
+            }
+            unknownCharCache[char].translation = translation;
+            
+            return translation;
+        }
+    } catch (error) {
+        console.error('Character translation error:', error);
+    }
+    
+    return ""; // Return empty string if translation fails
+}
+
+// Function to lookup unknown character data
+async function lookupUnknownChar(char) {
+    if (unknownCharCache[char]) {
+        return unknownCharCache[char];
+    }
+    
+    // Initialize cache entry
+    unknownCharCache[char] = {};
+    
+    try {
+        // Get both pinyin and translation in parallel
+        const [pinyin, translation] = await Promise.all([
+            getPinyinForChar(char),
+            getTranslationForChar(char)
+        ]);
+        
+        unknownCharCache[char] = {
+            pinyin: pinyin,
+            translation: translation
+        };
+        
+        return unknownCharCache[char];
+    } catch (error) {
+        console.error('Unknown character lookup error:', error);
+        return { pinyin: "", translation: "" };
     }
 }
 
@@ -189,20 +278,62 @@ async function analyzeLyrics(text) {
             
             const div = document.createElement("div");
             div.className = `char-block hsk-${entry.hsk}`;
-            div.innerHTML = `
-                <div class="pinyin">${entry.pinyin}</div>
-                <div class="character">${char}</div>
-            `;
+            
+            // For unknown characters, we'll load pinyin asynchronously
+            if (entry.hsk === "unknown") {
+                div.innerHTML = `
+                    <div class="pinyin">...</div>
+                    <div class="character">${char}</div>
+                `;
+                
+                // Load pinyin for unknown character
+                lookupUnknownChar(char).then(unknownData => {
+                    const pinyinDiv = div.querySelector('.pinyin');
+                    if (pinyinDiv) {
+                        pinyinDiv.textContent = unknownData.pinyin || '?';
+                    }
+                });
+            } else {
+                div.innerHTML = `
+                    <div class="pinyin">${entry.pinyin}</div>
+                    <div class="character">${char}</div>
+                `;
+            }
             
             // Add hover events for tooltip
-            div.addEventListener('mouseenter', () => {
+            div.addEventListener('mouseenter', async () => {
                 if (entry.hsk !== "unknown") {
+                    // Known HSK character
                     tooltip.innerHTML = `
                         <strong>${char}</strong> (HSK ${entry.hsk})<br>
                         <em>${entry.pinyin}</em><br>
                         ${entry.definition}
                     `;
                     tooltip.classList.add('show');
+                } else {
+                    // Unknown character - lookup pinyin and translation
+                    tooltip.innerHTML = `
+                        <strong>${char}</strong> (Unknown)<br>
+                        <em>Loading...</em><br>
+                        Loading translation...
+                    `;
+                    tooltip.classList.add('show');
+                    
+                    try {
+                        const unknownData = await lookupUnknownChar(char);
+                        tooltip.innerHTML = `
+                            <strong>${char}</strong> (Unknown)<br>
+                            <em>${unknownData.pinyin || 'N/A'}</em><br>
+                            ${unknownData.translation || 'No translation available'}
+                        `;
+                    } catch (error) {
+                        console.error('Error looking up unknown character:', error);
+                        tooltip.innerHTML = `
+                            <strong>${char}</strong> (Unknown)<br>
+                            <em>Error loading pinyin</em><br>
+                            Error loading translation
+                        `;
+                    }
                 }
             });
             
@@ -270,7 +401,9 @@ const defaultLyrics = `你问我爱你有多深
 你问我爱你有多深
 我爱你有几分
 我的情不移 我的爱不变
-月亮代表我的心`;
+月亮代表我的心
+
+测试未知字符：魑魅魍魉`;
 
 // Set default text when page loads
 document.addEventListener('DOMContentLoaded', () => {

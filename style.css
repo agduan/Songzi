@@ -230,8 +230,9 @@ header p {
     border-bottom: 4px solid #e8daff;
 }
 .hsk-unknown { 
-    background-color: transparent;
-    border-bottom: none;
+    background-color: rgba(200, 200, 200, 0.2);
+    border-bottom: 2px dashed #ccc;
+    cursor: help;
 }
 
 .hsk-label {
