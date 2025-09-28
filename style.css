@@ -1,26 +1,198 @@
 body {
     font-family: sans-serif;
-    padding: 2em;
+    margin: 0;
+    padding: 0;
     background: #f9f9f9;
 }
 
-h1 {
-    /* margin-bottom: 1em; */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2em;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+header h1 {
+    margin: 0;
+    color: #333;
+    font-size: 2.4em;
+}
+
+header p {
+    margin: 0.2em 0 0 0;
+    color: #666;
+    font-size: 1.1em;
+}
+
+.input-section {
+    text-align: center;
+    margin-bottom: 2em;
+}
+
+.input-section textarea {
+    width: 100%;
+    max-width: 600px;
+    padding: 1em;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    resize: vertical;
+}
+
+.input-section button {
+    margin-top: 1em;
+    padding: 0.6em 2em;
+    background: gray;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+/* .input-section button:hover {
+    background: #555;
+} */
+
+.main-content {
+    display: flex;
+    gap: 2em;
+}
+
+.sidebar {
+    flex: 1;
+    background: white;
+    padding: 1.5em;
+    border-radius: 4px;
+    height: fit-content;
+}
+
+.lyrics-display {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 2em;
+}
+
+#lyrics-output {
+    text-align: left;
+    line-height: 1.8;
+    font-size: 1.1em;
+    max-width: 100%;
+}
+
+.sidebar h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5em;
 }
 
 .char-block {
     display: inline-block;
     text-align: center;
-    margin: 5px;
-    padding: 5px;
-    border-radius: 6px;
-    width: 50px;
+    margin: 0;
+    padding: 1px 2px;
+    border-radius: 2px;
+    vertical-align: baseline;
+    position: relative;
 }
 
-.hsk-1 { background-color: #d0f0c0; }  /* light green */
-.hsk-2 { background-color: #f0f0c0; }  /* light yellow */
-.hsk-3 { background-color: #f9d0c0; }  /* light orange */
-.hsk-4 { background-color: #f0c0c0; }  /* light red */
-.hsk-5 { background-color: #d0c0f0; }  /* light purple */
-.hsk-6 { background-color: #c0d0f0; }  /* light blue */
-.hsk-unknown { background-color: #e0e0e0; }
+.character {
+    font-size: 1.1em;
+    font-weight: normal;
+    margin: 0;
+}
+
+.pinyin {
+    font-size: 0.7em;
+    color: #999;
+    margin: 0 0 2px 0;
+    line-height: 1;
+}
+
+.definition {
+    display: none;
+}
+
+.hsk-1 { 
+    background-color: rgba(255, 192, 203, 0.2);  /* very faint pastel pink */
+    border-bottom: 3px solid #FFB6C1;  /* thicker pastel pink underline */
+}
+.hsk-2 { 
+    background-color: rgba(255, 218, 185, 0.2);  /* very faint pastel orange */
+    border-bottom: 3px solid #FFCCCB;  /* thicker pastel orange underline */
+}
+.hsk-3 { 
+    background-color: rgba(255, 255, 224, 0.2);  /* very faint pastel yellow */
+    border-bottom: 3px solid #FFFFE0;  /* thicker pastel yellow underline */
+}
+.hsk-4 { 
+    background-color: rgba(144, 238, 144, 0.2);  /* very faint pastel green */
+    border-bottom: 3px solid #98FB98;  /* thicker pastel green underline */
+}
+.hsk-5 { 
+    background-color: rgba(173, 216, 230, 0.2);  /* very faint pastel blue */
+    border-bottom: 3px solid #B0E0E6;  /* thicker pastel blue underline */
+}
+.hsk-6 { 
+    background-color: rgba(221, 160, 221, 0.2);  /* very faint pastel blue-purple */
+    border-bottom: 3px solid #DDA0DD;  /* thicker pastel blue-purple underline */
+}
+.hsk-unknown { 
+    background-color: transparent;  /* no highlight */
+    border-bottom: none;  /* no underline */
+}
+
+.hsk-label {
+    font-size: 0.75em;
+    color: #666;
+    margin-top: 2px;
+}
+
+.hsk-level-section {
+    margin-bottom: 1em;
+}
+
+.hsk-level-section h4 {
+    margin: 0 0 0.3em 0;
+    color: #333;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.hsk-words {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.common-word {
+    padding: 0.3em;
+    border-radius: 3px;
+    font-size: 0.75em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+}
+
+.word-char {
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.word-pinyin {
+    color: #666;
+    font-size: 0.8em;
+}
+
+.word-def {
+    color: #888;
+    font-size: 0.7em;
+    line-height: 1.1;
+}

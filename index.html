@@ -1,15 +1,33 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <title>Songzi</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <title>Songzi - Chinese Lyrics Analyzer</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>Songzi</h1>
-     <p id="description">A Chinese lyrics analyzer.</p>
+    <div class="container">
+        <header>
+            <h1>Songzi</h1>
+            <p>A Chinese lyrics analyzer</p>
+        </header>
 
-    <div id="lyrics-output"></div>
+        <div class="input-section">
+            <textarea id="lyrics-input" rows="6" cols="50" placeholder="Input your lyrics here"></textarea><br />
+            <button id="analyze-btn">Analyze</button>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <h3>Most common characters</h3>
+                <div id="common-words"></div>
+            </div>
+            
+            <div class="lyrics-display">
+                <div id="lyrics-output"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
