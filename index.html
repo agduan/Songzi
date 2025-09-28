@@ -13,7 +13,7 @@
         </header>
 
         <div class="input-section">
-            <textarea id="lyrics-input" rows="6" cols="50" placeholder="Input your lyrics here"></textarea><br />
+            <textarea id="lyrics-input" rows="4" cols="50" placeholder="Input your lyrics here"></textarea><br />
             <button id="analyze-btn">Analyze</button>
         </div>
 
@@ -24,7 +24,12 @@
             </div>
             
             <div class="lyrics-display">
-                <div id="lyrics-output"></div>
+                <h3>Lyrics</h3>
+                <div class="lyrics-container">
+                    <div id="lyrics-output"></div>
+                    <div id="translation-output"></div>
+                </div>
+                <div id="tooltip" class="tooltip"></div>
             </div>
         </div>
     </div>

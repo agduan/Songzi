@@ -4,7 +4,18 @@ let isLoading = true;
 const input = document.getElementById("lyrics-input");
 const button = document.getElementById("analyze-btn");
 const container = document.getElementById("lyrics-output");
+const translationContainer = document.getElementById("translation-output");
 const commonWordsContainer = document.getElementById("common-words");
+const tooltip = document.getElementById("tooltip");
+
+// Simple translation for the default song
+const translation = {
+    "你问我爱你有多深": "You ask me how deep my love is for you",
+    "我爱你有几分": "I love you how much",
+    "我的情也真 我的爱也真": "My feelings are true, my love is true",
+    "月亮代表我的心": "The moon represents my heart",
+    "我的情不移 我的爱不变": "My feelings don't change, my love doesn't change"
+};
 
 // Load HSK definitions
 async function loadHSKDefinitions() {
@@ -57,6 +68,7 @@ async function loadHSKDefinitions() {
 
 function clearOutput() {
     container.innerHTML = "";
+    translationContainer.innerHTML = "";
 }
 
 function populateCommonWords() {
@@ -68,7 +80,7 @@ function populateCommonWords() {
         let count = 0;
         
         for (const [char, data] of Object.entries(dictionary)) {
-            if (data.hsk === level && count < 10) {
+            if (data.hsk === level && count < 4) {
                 commonWords[level].push({ char, ...data });
                 count++;
             }
@@ -89,11 +101,13 @@ function populateCommonWords() {
             
             commonWords[level].forEach(word => {
                 const wordDiv = document.createElement('div');
-                wordDiv.className = `common-word hsk-${level}`;
+                wordDiv.className = 'common-word';
                 wordDiv.innerHTML = `
-                    <span class="word-char">${word.char}</span>
-                    <span class="word-pinyin">${word.pinyin}</span>
-                    <span class="word-def">${word.definition}</span>
+                    <div class="word-char-container">
+                        <span class="word-pinyin">${word.pinyin}</span>
+                        <span class="word-char hsk-${level}">${word.char}</span>
+                    </div>
+                    <span class="word-info">${word.definition}</span>
                 `;
                 wordsDiv.appendChild(wordDiv);
             });
@@ -114,53 +128,96 @@ function analyzeLyrics(text) {
     console.log(`Analyzing text: "${text}"`);
     console.log(`Dictionary has ${Object.keys(dictionary).length} characters`);
     
-    for (const char of text) {
-        if (char === '\n') {
-            // Add line break
+    const lines = text.split('\n');
+    
+    lines.forEach((line, lineIndex) => {
+        if (line.trim() === '') {
+            // Add empty line
             const br = document.createElement("br");
             container.appendChild(br);
-            continue;
+            const translationBr = document.createElement("br");
+            translationContainer.appendChild(translationBr);
+            return;
         }
         
-        if (char === ' ') {
-            // Add space
-            const space = document.createElement("span");
-            space.innerHTML = "&nbsp;";
-            container.appendChild(space);
-            continue;
+        // Process each character in the line
+        for (const char of line) {
+            if (char === ' ') {
+                // Add space
+                const space = document.createElement("span");
+                space.innerHTML = "&nbsp;";
+                container.appendChild(space);
+                continue;
+            }
+            
+            if (char.trim() === "") continue;
+            
+            const entry = dictionary[char] || { 
+                pinyin: "", 
+                pinyinClean: "", 
+                definition: "", 
+                hsk: "unknown" 
+            };
+            
+            if (entry.hsk === "unknown") {
+                console.log(`Unknown character: "${char}"`);
+            }
+            
+            const div = document.createElement("div");
+            div.className = `char-block hsk-${entry.hsk}`;
+            div.innerHTML = `
+                <div class="pinyin">${entry.pinyin}</div>
+                <div class="character">${char}</div>
+            `;
+            
+            // Add hover events for tooltip
+            div.addEventListener('mouseenter', () => {
+                if (entry.hsk !== "unknown") {
+                    tooltip.innerHTML = `
+                        <strong>${char}</strong> (HSK ${entry.hsk})<br>
+                        <em>${entry.pinyin}</em><br>
+                        ${entry.definition}
+                    `;
+                    tooltip.classList.add('show');
+                }
+            });
+            
+            div.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+            
+            container.appendChild(div);
         }
         
-        if (char.trim() === "") continue;
+        // Add translation for this line
+        const translatedLine = translation[line.trim()] || "";
+        const translationDiv = document.createElement("div");
+        translationDiv.innerHTML = translatedLine;
+        translationContainer.appendChild(translationDiv);
         
-        const entry = dictionary[char] || { 
-            pinyin: "", 
-            pinyinClean: "", 
-            definition: "", 
-            hsk: "unknown" 
-        };
-        
-        if (entry.hsk === "unknown") {
-            console.log(`Unknown character: "${char}"`);
+        // Add line break if not the last line
+        if (lineIndex < lines.length - 1) {
+            const br = document.createElement("br");
+            container.appendChild(br);
+            const translationBr = document.createElement("br");
+            translationContainer.appendChild(translationBr);
         }
-        
-        const div = document.createElement("div");
-        div.className = `char-block hsk-${entry.hsk}`;
-        div.innerHTML = `
-            <div class="pinyin">${entry.pinyin}</div>
-            <div class="character">${char}</div>
-        `;
-        container.appendChild(div);
-    }
+    });
 }
 
 // Initialize
 loadHSKDefinitions();
 
 // Set default lyrics
-const defaultLyrics = `董小姐，你熄灭了烟 说起从前
-你说前半生就这样吧 还有明天
-董小姐，你可知道我说够了再见
-在五月的早晨 终于丢失了睡眠`;
+const defaultLyrics = `你问我爱你有多深
+我爱你有几分
+我的情也真 我的爱也真
+月亮代表我的心
+
+你问我爱你有多深
+我爱你有几分
+我的情不移 我的爱不变
+月亮代表我的心`;
 
 // Set default text when page loads
 document.addEventListener('DOMContentLoaded', () => {
