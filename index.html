@@ -2,19 +2,23 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8" />
-    <title>Songzi - Chinese Lyrics Analyzer</title>
+    <title>Songzi - Chinese text complexity</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Songzi</h1>
-            <p>A Chinese lyrics analyzer</p>
+            <h1>Song<span class="char-block hsk-1">
+                <div class="pinyin">zi</div>
+                <div class="character">子</div>
+            </span></h1>
+            <p>A complexity analyzer for Chinese text</p>
         </header>
 
         <div class="input-section">
-            <textarea id="lyrics-input" rows="4" cols="50" placeholder="Input your lyrics here"></textarea><br />
-            <button id="analyze-btn">Analyze</button>
+            <textarea id="lyrics-input" rows="4" cols="50" placeholder="Input Chinese text here"></textarea><br />
+            <p class="instructions">Paste Chinese text in the box to see characters translated and color-coded by HSK level.<br>Hover over any character in the output to see its definition.</p>
+            <button id="analyze-btn">Analyze · 分析 (fēnxī)</button>
         </div>
 
         <div class="main-content">
@@ -24,7 +28,7 @@
             </div>
             
             <div class="lyrics-display">
-                <h3>Lyrics</h3>
+                <h3>Translation</h3>
                 <div class="lyrics-container">
                     <div id="lyrics-output"></div>
                     <div id="translation-output"></div>

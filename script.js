@@ -8,14 +8,40 @@ const translationContainer = document.getElementById("translation-output");
 const commonWordsContainer = document.getElementById("common-words");
 const tooltip = document.getElementById("tooltip");
 
-// Simple translation for the default song
-const translation = {
+// Translation cache to avoid repeated API calls
+const translationCache = {
     "你问我爱你有多深": "You ask me how deep my love is for you",
-    "我爱你有几分": "I love you how much",
+    "我爱你有几分": "I love you how much", 
     "我的情也真 我的爱也真": "My feelings are true, my love is true",
     "月亮代表我的心": "The moon represents my heart",
     "我的情不移 我的爱不变": "My feelings don't change, my love doesn't change"
 };
+
+// Google Translate function using the free google-translate-api
+async function translateText(text) {
+    if (translationCache[text]) {
+        return translationCache[text];
+    }
+    
+    try {
+        // Using the free google-translate-api (no API key needed)
+        const response = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q=' + encodeURIComponent(text));
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const translatedText = data[0][0][0];
+            
+            // Cache the translation
+            translationCache[text] = translatedText;
+            return translatedText;
+        } else {
+            throw new Error('Invalid response format');
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        return text; // Return original text if translation fails
+    }
+}
 
 // Load HSK definitions
 async function loadHSKDefinitions() {
@@ -103,11 +129,8 @@ function populateCommonWords() {
                 const wordDiv = document.createElement('div');
                 wordDiv.className = 'common-word';
                 wordDiv.innerHTML = `
-                    <div class="word-char-container">
-                        <span class="word-pinyin">${word.pinyin}</span>
-                        <span class="word-char hsk-${level}">${word.char}</span>
-                    </div>
-                    <span class="word-info">${word.definition}</span>
+                    <span class="word-char hsk-${level}">${word.char}</span>
+                    <span class="word-info">${word.pinyin} - ${word.definition}</span>
                 `;
                 wordsDiv.appendChild(wordDiv);
             });
@@ -118,7 +141,7 @@ function populateCommonWords() {
     }
 }
 
-function analyzeLyrics(text) {
+async function analyzeLyrics(text) {
     if (isLoading) {
         container.innerHTML = "<p>Loading definitions...</p>";
         return;
@@ -130,14 +153,15 @@ function analyzeLyrics(text) {
     
     const lines = text.split('\n');
     
-    lines.forEach((line, lineIndex) => {
+    // First pass: Display all Chinese lyrics with character analysis
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        const line = lines[lineIndex];
+        
         if (line.trim() === '') {
             // Add empty line
             const br = document.createElement("br");
             container.appendChild(br);
-            const translationBr = document.createElement("br");
-            translationContainer.appendChild(translationBr);
-            return;
+            continue;
         }
         
         // Process each character in the line
@@ -189,20 +213,49 @@ function analyzeLyrics(text) {
             container.appendChild(div);
         }
         
-        // Add translation for this line
-        const translatedLine = translation[line.trim()] || "";
-        const translationDiv = document.createElement("div");
-        translationDiv.innerHTML = translatedLine;
-        translationContainer.appendChild(translationDiv);
-        
         // Add line break if not the last line
         if (lineIndex < lines.length - 1) {
             const br = document.createElement("br");
             container.appendChild(br);
-            const translationBr = document.createElement("br");
-            translationContainer.appendChild(translationBr);
         }
-    });
+    }
+    
+    // Second pass: Translate all lines and display them aligned
+    console.log("Starting translation of all lines...");
+    const translationPromises = lines.map(line => 
+        line.trim() === '' ? Promise.resolve('') : translateText(line.trim())
+    );
+    
+    try {
+        const translations = await Promise.all(translationPromises);
+        
+        // Display translations aligned with Chinese lines
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            const translation = translations[lineIndex];
+            
+            if (translation === '') {
+                // Add empty line for empty Chinese line
+                const translationBr = document.createElement("br");
+                translationContainer.appendChild(translationBr);
+            } else {
+                const translationDiv = document.createElement("div");
+                translationDiv.innerHTML = translation;
+                translationContainer.appendChild(translationDiv);
+            }
+            
+            // Add line break if not the last line
+            if (lineIndex < lines.length - 1) {
+                const translationBr = document.createElement("br");
+                translationContainer.appendChild(translationBr);
+            }
+        }
+        
+        console.log("Translation completed!");
+    } catch (error) {
+        console.error("Error during translation:", error);
+        // Fallback: show error message
+        translationContainer.innerHTML = "<p>Translation failed. Please try again.</p>";
+    }
 }
 
 // Initialize
@@ -225,11 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-button.addEventListener("click", () => {
+button.addEventListener("click", async () => {
     const text = input.value.trim();
     if (text === "") {
         alert("Please paste some Chinese lyrics.");
         return;
     }
-    analyzeLyrics(text);
+    await analyzeLyrics(text);
 });

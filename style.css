@@ -20,6 +20,34 @@ header h1 {
     margin: 0;
     color: #333;
     font-size: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1em;
+}
+
+header h1 .char-block {
+    display: inline-block;
+    text-align: center;
+    margin: 0;
+    padding: 0.05em 0.2em;
+    border-radius: 3px;
+    vertical-align: baseline;
+    position: relative;
+}
+
+header h1 .char-block .pinyin {
+    font-size: 0.5em;
+    color: #888;
+    margin: 0 0 0px 0;
+    line-height: 1;
+    font-weight: 500;
+}
+
+header h1 .char-block .character {
+    font-size: 0.9em;
+    font-weight: normal;
+    margin: -2px 0 0 0;
 }
 
 header p {
@@ -44,14 +72,22 @@ header p {
 }
 
 .input-section button {
-    margin-top: 1em;
-    padding: 0.6em 2em;
+    margin-top: 0.2em;
+    padding: 0.5em 2em;
     background: #aaa;
     color: white;
     border: none;
     border-radius: 6px;
     font-size: 1em;
     cursor: pointer;
+}
+
+.instructions {
+    margin-top: 0.8em;
+    color: #555;
+    font-size: 0.9em;
+    text-align: center;
+    line-height: 1.4;
 }
 
 /* .input-section button:hover {
@@ -64,7 +100,7 @@ header p {
 }
 
 .sidebar {
-    flex: 0.8;
+    flex: 0.6;
     background: transparent;
     padding: 1.5em;
     border-radius: 4px;
@@ -78,7 +114,6 @@ header p {
     background: white;
     border-radius: 8px;
     padding: 1.5em;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .lyrics-display h3 {
@@ -105,9 +140,10 @@ header p {
     text-align: left;
     line-height: 1.8;
     font-size: 1em;
-    flex: 1;
+    flex: 0 0 auto;
     color: #666;
     font-style: italic;
+    width: fit-content;
 }
 
 .tooltip {
@@ -224,33 +260,53 @@ header p {
 .common-word {
     padding: 0.3em;
     border-radius: 3px;
-    font-size: 1.3em;
+    font-size: 1.2em;
     display: flex;
     align-items: center;
-    gap: 0.2em;
-}
-
-.word-char-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    min-width: 1.2em;
-}
-
-.word-pinyin {
-    color: #999;
-    font-size: 0.7em;
-    line-height: 1;
+    gap: 0.5em;
 }
 
 .word-char {
     font-weight: normal;
     font-size: 1em;
-    text-align: left;
+    min-width: 1.2em;
+    text-align: center;
 }
 
 .word-info {
     color: #666;
     font-size: 0.7em;
     line-height: 1.2;
+}
+
+/* Mobile responsive layout */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+        gap: 1em;
+    }
+    
+    .sidebar {
+        flex: none;
+        order: 2;
+    }
+    
+    .lyrics-display {
+        flex: none;
+        order: 1;
+    }
+    
+    .lyrics-container {
+        flex-direction: column;
+        gap: 1em;
+    }
+    
+    #lyrics-output {
+        flex: none;
+    }
+    
+    #translation-output {
+        flex: none;
+        width: 100%;
+    }
 }

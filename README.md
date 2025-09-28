@@ -1,6 +1,6 @@
 # Songzi
 
-A Chinese song lyrics analyzer. Input lyrics and see each word highlighted by HSK level.
+Analyze Chinese text complexity by HSK level. Paste any Chinese text to see characters color-coded by difficulty, with pinyin and definitions on hover.
 
 ## Data
 
