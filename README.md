@@ -1,15 +1,13 @@
 # Songzi
-A Chinese text complexity analyzer that color-codes characters by HSK level and provides instant translations.
+A Chinese text complexity analyzer that color-codes characters by HSK level and provides instant translations. This project was made with the Google Translate API, the pinyin-pro JavaScript library, [glxxyz/hskhsk.com](https://github.com/glxxyz/hskhsk.com), and HTML/CSS.
 
 ![Songzi Screenshot](assets/screenshot.png)
+*User interface analyzing Teresa Teng's hit single, ["The Moon Represents My Heart"](https://en.wikipedia.org/wiki/The_Moon_Represents_My_Heart)*
 
-## Features
-
-- **HSK Level Analysis**: Characters are color-coded by difficulty level (HSK 1-6)
-- **Instant Translation**: Automatic translation of Chinese text to English via the Google Translate API
-- **Interactive Tooltips**: Hover over any character to see pinyin and definition
-- **Mobile Responsive**: Optimized layout for desktop and mobile devices
-- **Fast Performance**: All Chinese text displays immediately, translations load in parallel
+## Data
+- The Google Translate API was used for Chinese-to-English translation, with default pinyin lookups cached for performance.
+- Official HSK 1-6 lists and definitions were sourced from the GitHub repo [glxxyz/hskhsk.com](https://github.com/glxxyz/hskhsk.com).
+- Accurate Chinese pinyin conversion and processing is done using v3.12 of [pinyin-pro](https://pinyin-pro.cn/en/), a JavaScript library.
 
 ## Usage
 
@@ -19,8 +17,11 @@ A Chinese text complexity analyzer that color-codes characters by HSK level and 
 4. Hover over characters for detailed information
 5. See English translations aligned with Chinese text
 
-## Data
 
-Official HSK lists and definitions from [glxxyz/hskhsk.com](https://github.com/glxxyz/hskhsk.com/tree/main/data/lists).
+## Features
 
-Accurate Chinese pinyin conversion and processing from [pinyin-pro](https://pinyin-pro.cn/en/).
+- **HSK Level Analysis**: Characters are color-coded by difficulty level (HSK 1-6)
+- **Instant Translation**: Automatic translation of Chinese text to English via the Google Translate API
+- **Interactive Tooltips**: Hover over any character to see pinyin and definition
+- **Mobile Responsive**: Optimized layout for desktop and mobile devices
+- **Fast Performance**: All Chinese text displays immediately, translations load in parallel
