@@ -1,6 +1,26 @@
 let dictionary = {};
 let isLoading = true;
 
+// Performance-friendly logging system
+const DEBUG = {
+    enabled: false,
+    log: function(...args) {
+        if (this.enabled) {
+            console.log(...args);
+        }
+    },
+    error: function(...args) {
+        if (this.enabled) {
+            console.error(...args);
+        }
+    },
+    warn: function(...args) {
+        if (this.enabled) {
+            console.warn(...args);
+        }
+    }
+};
+
 const input = document.getElementById("lyrics-input");
 const button = document.getElementById("analyze-btn");
 const container = document.getElementById("lyrics-output");
@@ -27,7 +47,7 @@ async function translateText(text) {
     }
     
     try {
-        // Using the free google-translate-api (no API key needed)
+        // Using the free google-translate-api
         const response = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q=' + encodeURIComponent(text));
         const data = await response.json();
         
@@ -41,39 +61,39 @@ async function translateText(text) {
             throw new Error('Invalid response format');
         }
     } catch (error) {
-        console.error('Translation error:', error);
+        DEBUG.error('Translation error:', error);
         return text; // Return original text if translation fails
     }
 }
 
-// Function to get pinyin for a single character
+// Get pinyin for a single character
 async function getPinyinForChar(char) {
-    if (unknownCharCache[char] && unknownCharCache[char].pinyin) {
-        return unknownCharCache[char].pinyin;
+    // Step 1: Check if character is in HSK dictionary
+    if (dictionary[char] && dictionary[char].pinyin) {
+        return dictionary[char].pinyin;
     }
     
+    // Step 2: Try pinyin-pro library
     try {
-        // Use a free pinyin API or service
-        // For now, we'll use a simple approach with Google Translate's romanization
-        const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=rm&q=${encodeURIComponent(char)}`);
-        const data = await response.json();
-        
-        if (data && data[0] && data[0][0] && data[0][0][0]) {
-            const result = data[0][0][0];
-            // Check if the result looks like pinyin (contains only letters and maybe spaces)
-            if (result && /^[a-zA-Z\s]+$/.test(result) && result.length < 20) {
-                if (!unknownCharCache[char]) {
-                    unknownCharCache[char] = {};
-                }
-                unknownCharCache[char].pinyin = result;
-                return result;
+        if (typeof pinyinPro !== 'undefined' && pinyinPro.pinyin) {
+            // Use the correct API from pinyin-pro library
+            const pinyinResult = pinyinPro.pinyin(char, {toneType: 'symbol'});     
+            DEBUG.log(`pinyin-pro result for "${char}":`, pinyinResult);
+            
+            if (pinyinResult && pinyinResult.trim() !== '') {
+                DEBUG.log(`Found pinyin via pinyin-pro for "${char}": "${pinyinResult}"`);
+                return pinyinResult;
             }
+        } else {
+            DEBUG.log(`pinyin-pro library not available for "${char}"`);
         }
     } catch (error) {
-        console.error('Pinyin lookup error:', error);
+        DEBUG.log(`pinyin-pro failed for "${char}":`, error);
     }
     
-    return ""; // Return empty string if lookup fails
+    // Step 3: No pinyin found
+    DEBUG.log(`No pinyin found for "${char}" - pinyin.js library failed`);
+    return ""; // Return empty string if pinyin.js fails
 }
 
 // Function to get translation for a single character
@@ -98,7 +118,7 @@ async function getTranslationForChar(char) {
             return translation;
         }
     } catch (error) {
-        console.error('Character translation error:', error);
+        DEBUG.error('Character translation error:', error);
     }
     
     return ""; // Return empty string if translation fails
@@ -175,7 +195,7 @@ async function loadHSKDefinitions() {
     isLoading = false;
     console.log(`Loaded ${Object.keys(dictionary).length} characters`);
     console.log('Sample characters:', Object.keys(dictionary).slice(0, 10));
-    populateCommonWords();
+    populateCommonWords(defaultLyrics);
     
     // Auto-analyze the default lyrics
     analyzeLyrics(defaultLyrics);
@@ -186,20 +206,35 @@ function clearOutput() {
     translationContainer.innerHTML = "";
 }
 
-function populateCommonWords() {
+function populateCommonWords(analyzedText = '') {
     const commonWords = {};
     
-    // Get first 10 words from each HSK level
+    // Get characters that are actually in the analyzed text, grouped by HSK level
     for (let level = 1; level <= 6; level++) {
         commonWords[level] = [];
-        let count = 0;
         
-        for (const [char, data] of Object.entries(dictionary)) {
-            if (data.hsk === level && count < 4) {
+        // Find all unique characters in the text that belong to this HSK level
+        const charsInText = new Set(analyzedText.split(''));
+        
+        for (const char of charsInText) {
+            const data = dictionary[char];
+            if (data && data.hsk === level) {
                 commonWords[level].push({ char, ...data });
-                count++;
             }
         }
+        
+        // Sort by frequency (if available) or alphabetically
+        commonWords[level].sort((a, b) => {
+            // If both have frequency data, sort by frequency (lower number = more common)
+            if (a.frequency && b.frequency) {
+                return a.frequency - b.frequency;
+            }
+            // Otherwise sort alphabetically by character
+            return a.char.localeCompare(b.char);
+        });
+        
+        // Limit to 4 characters per level
+        commonWords[level] = commonWords[level].slice(0, 4);
     }
     
     // Display in sidebar
@@ -237,8 +272,8 @@ async function analyzeLyrics(text) {
     }
     
     clearOutput();
-    console.log(`Analyzing text: "${text}"`);
-    console.log(`Dictionary has ${Object.keys(dictionary).length} characters`);
+    DEBUG.log(`Analyzing text: "${text}"`);
+    DEBUG.log(`Dictionary has ${Object.keys(dictionary).length} characters`);
     
     const lines = text.split('\n');
     
@@ -273,7 +308,7 @@ async function analyzeLyrics(text) {
             };
             
             if (entry.hsk === "unknown") {
-                console.log(`Unknown character: "${char}"`);
+                DEBUG.log(`Unknown character: "${char}"`);
             }
             
             const div = document.createElement("div");
@@ -286,11 +321,17 @@ async function analyzeLyrics(text) {
                     <div class="character">${char}</div>
                 `;
                 
-                // Load pinyin for unknown character
-                lookupUnknownChar(char).then(unknownData => {
+                // Load pinyin for unknown character using hybrid lookup
+                getPinyinForChar(char).then(pinyin => {
                     const pinyinDiv = div.querySelector('.pinyin');
                     if (pinyinDiv) {
-                        pinyinDiv.textContent = unknownData.pinyin || '?';
+                        pinyinDiv.textContent = pinyin || '?';
+                    }
+                }).catch(error => {
+                    console.error(`Error getting pinyin for "${char}":`, error);
+                    const pinyinDiv = div.querySelector('.pinyin');
+                    if (pinyinDiv) {
+                        pinyinDiv.textContent = '?';
                     }
                 });
             } else {
@@ -320,16 +361,21 @@ async function analyzeLyrics(text) {
                     tooltip.classList.add('show');
                     
                     try {
-                        const unknownData = await lookupUnknownChar(char);
+                        // Get both pinyin and translation in parallel
+                        const [pinyin, translation] = await Promise.all([
+                            getPinyinForChar(char),
+                            getTranslationForChar(char)
+                        ]);
+                        
                         tooltip.innerHTML = `
-                            <strong>${char}</strong> (Unknown)<br>
-                            <em>${unknownData.pinyin || 'N/A'}</em><br>
-                            ${unknownData.translation || 'No translation available'}
+                            <strong>${char}</strong><br>
+                            <em>${pinyin || 'N/A'}</em><br>
+                            ${translation || 'No translation available'}
                         `;
                     } catch (error) {
-                        console.error('Error looking up unknown character:', error);
+                        DEBUG.error('Error looking up unknown character:', error);
                         tooltip.innerHTML = `
-                            <strong>${char}</strong> (Unknown)<br>
+                            <strong>${char}</strong><br>
                             <em>Error loading pinyin</em><br>
                             Error loading translation
                         `;
@@ -352,7 +398,7 @@ async function analyzeLyrics(text) {
     }
     
     // Second pass: Translate all lines and display them aligned
-    console.log("Starting translation of all lines...");
+    DEBUG.log("Starting translation of all lines...");
     const translationPromises = lines.map(line => 
         line.trim() === '' ? Promise.resolve('') : translateText(line.trim())
     );
@@ -381,19 +427,22 @@ async function analyzeLyrics(text) {
             }
         }
         
-        console.log("Translation completed!");
+        DEBUG.log("Translation completed!");
     } catch (error) {
-        console.error("Error during translation:", error);
+        DEBUG.error("Error during translation:", error);
         // Fallback: show error message
         translationContainer.innerHTML = "<p>Translation failed. Please try again.</p>";
     }
+    
+    // Update the HSK sidebar to show only characters from this text
+    populateCommonWords(text);
 }
 
 // Initialize
 loadHSKDefinitions();
 
 // Set default lyrics
-const defaultLyrics = `你问我爱你有多深
+const defaultLyrics1 = `你问我爱你有多深
 我爱你有几分
 我的情也真 我的爱也真
 月亮代表我的心
@@ -401,7 +450,16 @@ const defaultLyrics = `你问我爱你有多深
 你问我爱你有多深
 我爱你有几分
 我的情不移 我的爱不变
-月亮代表我的心`;
+月亮代表我的心
+
+测试字符：学习中文很有趣`;
+
+const defaultLyrics = `雪花飘飘 北风萧萧
+天地 一片苍茫
+一剪寒梅 傲立雪中
+只为 伊人飘香
+爱我所爱 无怨无悔
+此情 长留心间`
 
 // Set default text when page loads
 document.addEventListener('DOMContentLoaded', () => {
@@ -417,3 +475,4 @@ button.addEventListener("click", async () => {
     }
     await analyzeLyrics(text);
 });
+

@@ -22,3 +22,5 @@ A Chinese text complexity analyzer that color-codes characters by HSK level and 
 ## Data
 
 Official HSK lists and definitions from [glxxyz/hskhsk.com](https://github.com/glxxyz/hskhsk.com/tree/main/data/lists).
+
+Accurate Chinese pinyin conversion and processing from [pinyin-pro](https://pinyin-pro.cn/en/).

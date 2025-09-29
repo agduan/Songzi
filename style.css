@@ -186,6 +186,7 @@ header p {
     border-radius: 2px;
     vertical-align: baseline;
     position: relative;
+    cursor: pointer;
 }
  
 .character {
@@ -232,7 +233,6 @@ header p {
 .hsk-unknown { 
     background-color: rgba(200, 200, 200, 0.2);
     border-bottom: 2px dashed #ccc;
-    cursor: help;
 }
 
 .hsk-label {
