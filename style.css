@@ -88,6 +88,9 @@ header p {
     border-bottom: 3px dashed #666; */
     background-color: rgba(200, 200, 200, 0.2);
     border-bottom: 3px dashed #ccc;
+
+    /* background-color: rgba(200, 200, 200, 0.6);
+    border-bottom: 3px dashed #aaa; */
     color: #666;
 }
 
@@ -141,6 +144,12 @@ header p {
     flex: 1;
 }
 
+.chinese-line {
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+}
+
 #translation-output {
     text-align: left;
     line-height: 1.8;
@@ -150,6 +159,47 @@ header p {
     font-style: italic;
     width: fit-content;
 }
+
+.translation-line {
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 0.2em;
+    cursor: pointer;
+}
+
+.speaker-icon {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background-image: url('assets/speaker_inactive.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.4;
+    visibility: visible;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.speaker-icon:hover {
+    background-image: url('assets/speaker_active.png');
+    opacity: 0.6;
+}
+
+.speaker-icon.playing {
+    background-image: url('assets/speaker_active.png');
+    /* animation: pulse 1s infinite; */
+}
+
+/* @keyframes pulse {
+    0% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.2); }
+    100% { transform: translateY(-50%) scale(1); }
+} */
 
 .tooltip {
     position: fixed;

@@ -288,13 +288,24 @@ async function analyzeLyrics(text) {
             continue;
         }
         
+        // Create a container for this Chinese line with speaker icon
+        const chineseLineDiv = document.createElement("div");
+        chineseLineDiv.className = "chinese-line";
+        
+        // Add speaker icon for this line
+        const speakerIcon = document.createElement("span");
+        speakerIcon.className = "speaker-icon";
+        speakerIcon.setAttribute("data-text", line.trim());
+        
+        chineseLineDiv.appendChild(speakerIcon);
+        
         // Process each character in the line
         for (const char of line) {
             if (char === ' ') {
                 // Add space
                 const space = document.createElement("span");
                 space.innerHTML = "&nbsp;";
-                container.appendChild(space);
+                chineseLineDiv.appendChild(space);
                 continue;
             }
             
@@ -387,14 +398,11 @@ async function analyzeLyrics(text) {
                 tooltip.classList.remove('show');
             });
             
-            container.appendChild(div);
+            chineseLineDiv.appendChild(div);
         }
         
-        // Add line break if not the last line
-        if (lineIndex < lines.length - 1) {
-            const br = document.createElement("br");
-            container.appendChild(br);
-        }
+        // Add the complete Chinese line to the container
+        container.appendChild(chineseLineDiv);
     }
     
     // Second pass: Translate all lines and display them aligned
@@ -428,6 +436,9 @@ async function analyzeLyrics(text) {
         }
         
         DEBUG.log("Translation completed!");
+        
+        // Add event listeners to speaker icons after translations are displayed
+        addSpeakerEventListeners();
     } catch (error) {
         DEBUG.error("Error during translation:", error);
         // Fallback: show error message
@@ -436,6 +447,69 @@ async function analyzeLyrics(text) {
     
     // Update the HSK sidebar to show only characters from this text
     populateCommonWords(text);
+}
+
+// Audio functionality using Web Speech API
+function speakText(text, language = 'zh-CN') {
+    // Check if speech synthesis is supported
+    if (!('speechSynthesis' in window)) {
+        console.warn('Speech synthesis not supported in this browser');
+        return;
+    }
+    
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+    
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language;
+    utterance.rate = 0.8; // Slower for Chinese pronunciation
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Find a suitable voice for Chinese
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice => 
+        voice.lang.startsWith('zh') && voice.default
+    ) || voices.find(voice => voice.lang.startsWith('zh'));
+    
+    if (preferredVoice) {
+        utterance.voice = preferredVoice;
+    }
+    
+    return utterance;
+}
+
+function addSpeakerEventListeners() {
+    const speakerIcons = document.querySelectorAll('.speaker-icon');
+    
+    speakerIcons.forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            const text = this.getAttribute('data-text');
+            if (!text) return;
+            
+            // Add playing class for visual feedback
+            this.classList.add('playing');
+            
+            // Create and play speech
+            const utterance = speakText(text);
+            if (utterance) {
+                utterance.onend = () => {
+                    this.classList.remove('playing');
+                };
+                utterance.onerror = () => {
+                    this.classList.remove('playing');
+                    console.error('Speech synthesis error');
+                };
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                this.classList.remove('playing');
+            }
+        });
+    });
 }
 
 // Initialize
