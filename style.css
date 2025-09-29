@@ -77,9 +77,18 @@ header p {
     background: #888;
     color: white;
     border: none;
+    border-bottom: 3px solid transparent;
     border-radius: 6px;
     font-size: 1em;
     cursor: pointer;
+}
+
+.input-section button:hover {
+    /* background: #999;
+    border-bottom: 3px dashed #666; */
+    background-color: rgba(200, 200, 200, 0.2);
+    border-bottom: 3px dashed #ccc;
+    color: #666;
 }
 
 .instructions {
@@ -89,10 +98,6 @@ header p {
     text-align: center;
     line-height: 1.4;
 }
-
-/* .input-section button:hover {
-    background: #555;
-} */
 
 .main-content {
     display: flex;
