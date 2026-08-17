@@ -370,7 +370,7 @@ header p {
 }
 .hsk-unknown { 
     background-color: rgba(200, 200, 200, 0.2);
-    border-bottom: 2px dashed #ccc;
+    border-bottom: 4px solid transparent;
 }
 
 .hsk-label {
