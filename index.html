@@ -21,17 +21,28 @@
         <div class="input-section">
             <textarea id="lyrics-input" rows="4" cols="50" placeholder="Input Chinese text here"></textarea><br />
             <p class="instructions">Paste Chinese text in the box to see characters translated and color-coded by <a href="https://en.wikipedia.org/wiki/Hanyu_Shuiping_Kaoshi">HSK level</a>.<br>Hover over any character in the output to see its definition, pinyin, and translation.</p>
+            
+            <div class="translation-controls">
+                <label for="translation-mode">Translation mode:</label>
+                <select id="translation-mode">
+                    <option value="line-by-line">Line-by-line (with context)</option>
+                    <option value="whole-text">Whole text</option>
+                </select>
+            </div>
+            
             <button id="analyze-btn">Analyze · 分析 (fēnxī)</button>
         </div>
 
         <div class="main-content">
-            <div class="sidebar">
-                <h3>Most common characters</h3>
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3>Most common characters</h3>
+                    <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="common-words" title="Minimize">«</button>
+                </div>
                 <div id="common-words"></div>
             </div>
             
             <div class="lyrics-display">
-                <h3>Translation</h3>
                 <div class="lyrics-container">
                     <div id="lyrics-output"></div>
                     <div id="translation-output"></div>

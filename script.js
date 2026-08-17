@@ -27,6 +27,7 @@ const container = document.getElementById("lyrics-output");
 const translationContainer = document.getElementById("translation-output");
 const commonWordsContainer = document.getElementById("common-words");
 const tooltip = document.getElementById("tooltip");
+const translationModeSelect = document.getElementById("translation-mode");
 
 // Translation cache to avoid repeated API calls
 const translationCache = {
@@ -36,6 +37,9 @@ const translationCache = {
     "月亮代表我的心": "The moon represents my heart",
     "我的情不移 我的爱不变": "My feelings don't change, my love doesn't change"
 };
+
+// Translation mode: 'line-by-line' or 'whole-text'
+let translationMode = 'line-by-line';
 
 // Cache for unknown character lookups
 const unknownCharCache = {};
@@ -63,6 +67,82 @@ async function translateText(text) {
     } catch (error) {
         DEBUG.error('Translation error:', error);
         return text; // Return original text if translation fails
+    }
+}
+
+// Translate whole text at once
+async function translateWholeText(text) {
+    if (translationCache[text]) {
+        return translationCache[text];
+    }
+    
+    try {
+        const response = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q=' + encodeURIComponent(text));
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const translatedText = data[0][0][0];
+            
+            // Cache the translation
+            translationCache[text] = translatedText;
+            return translatedText;
+        } else {
+            throw new Error('Invalid response format');
+        }
+    } catch (error) {
+        DEBUG.error('Whole text translation error:', error);
+        return text; // Return original text if translation fails
+    }
+}
+
+// Translate line with context (improved line-by-line)
+async function translateLineWithContext(line, allLines, lineIndex) {
+    // Create context by including previous and next lines
+    const contextLines = [];
+    
+    // Add previous line if it exists
+    if (lineIndex > 0 && allLines[lineIndex - 1].trim() !== '') {
+        contextLines.push(allLines[lineIndex - 1].trim());
+    }
+    
+    // Add current line
+    contextLines.push(line.trim());
+    
+    // Add next line if it exists
+    if (lineIndex < allLines.length - 1 && allLines[lineIndex + 1].trim() !== '') {
+        contextLines.push(allLines[lineIndex + 1].trim());
+    }
+    
+    const contextText = contextLines.join(' | ');
+    const cacheKey = `context_${contextText}`;
+    
+    if (translationCache[cacheKey]) {
+        // Extract just the middle line translation
+        const fullTranslation = translationCache[cacheKey];
+        const parts = fullTranslation.split(' | ');
+        return parts[contextLines.length === 3 ? 1 : (contextLines.length === 2 && lineIndex > 0 ? 1 : 0)] || line;
+    }
+    
+    try {
+        const response = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q=' + encodeURIComponent(contextText));
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const translatedText = data[0][0][0];
+            
+            // Cache the translation
+            translationCache[cacheKey] = translatedText;
+            
+            // Extract just the middle line translation
+            const parts = translatedText.split(' | ');
+            return parts[contextLines.length === 3 ? 1 : (contextLines.length === 2 && lineIndex > 0 ? 1 : 0)] || line;
+        } else {
+            throw new Error('Invalid response format');
+        }
+    } catch (error) {
+        DEBUG.error('Context translation error:', error);
+        // Fallback to simple line translation
+        return translateText(line);
     }
 }
 
@@ -406,17 +486,38 @@ async function analyzeLyrics(text) {
     }
     
     // Second pass: Translate all lines and display them aligned
-    DEBUG.log("Starting translation of all lines...");
-    const translationPromises = lines.map(line => 
-        line.trim() === '' ? Promise.resolve('') : translateText(line.trim())
-    );
+    DEBUG.log(`Starting translation in ${translationMode} mode...`);
     
     try {
-        const translations = await Promise.all(translationPromises);
+        let translations;
+        
+        if (translationMode === 'whole-text') {
+            // Translate the entire text at once
+            const wholeText = lines.join('\n');
+            const wholeTranslation = await translateWholeText(wholeText);
+            translations = wholeTranslation.split('\n');
+            
+            // Ensure we have the same number of translation lines as Chinese lines
+            while (translations.length < lines.length) {
+                translations.push('');
+            }
+        } else {
+            // Line-by-line translation (with or without context)
+            const translationPromises = lines.map((line, lineIndex) => {
+                if (line.trim() === '') {
+                    return Promise.resolve('');
+                }
+                
+                // Use context-aware translation for better results
+                return translateLineWithContext(line, lines, lineIndex);
+            });
+            
+            translations = await Promise.all(translationPromises);
+        }
         
         // Display translations aligned with Chinese lines
         for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-            const translation = translations[lineIndex];
+            const translation = translations[lineIndex] || '';
             
             if (translation === '') {
                 // Add empty line for empty Chinese line
@@ -540,6 +641,27 @@ document.addEventListener('DOMContentLoaded', () => {
     input.value = defaultLyrics;
 });
 
+
+// Minimize / restore the "Most common characters" sidebar
+const sidebar = document.getElementById("sidebar");
+const sidebarToggle = document.getElementById("sidebar-toggle");
+
+sidebarToggle.addEventListener("click", () => {
+    const collapsed = sidebar.classList.toggle("collapsed");
+    sidebarToggle.textContent = collapsed ? "»" : "«";
+    sidebarToggle.title = collapsed ? "Expand" : "Minimize";
+    sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+});
+
+// Handle translation mode changes
+translationModeSelect.addEventListener("change", (e) => {
+    translationMode = e.target.value;
+    // Re-analyze current text with new translation mode
+    const text = input.value.trim();
+    if (text !== "") {
+        analyzeLyrics(text);
+    }
+});
 
 button.addEventListener("click", async () => {
     const text = input.value.trim();
