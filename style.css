@@ -8,7 +8,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2em;
+    padding: 3.5em 1.5em 2em;
 }
 
 header {
@@ -59,6 +59,34 @@ header p {
 .input-section {
     text-align: center;
     margin-bottom: 2em;
+}
+
+.translation-controls {
+    margin: 1em 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+}
+
+.translation-controls label {
+    font-weight: 500;
+    color: #555;
+}
+
+.translation-controls select {
+    padding: 0.3em 0.6em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.translation-controls select:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 .input-section textarea {
@@ -113,10 +141,18 @@ header p {
     padding: 1.5em;
     border-radius: 4px;
     height: fit-content;
+    min-width: 0;
+}
+
+.sidebar.collapsed {
+    flex: 0 0 auto;
+    width: 1.6em;
+    padding: 1.5em 0.5em;
 }
 
 .lyrics-display {
     flex: 2;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     background: white;
@@ -124,30 +160,25 @@ header p {
     padding: 1.5em;
 }
 
-.lyrics-display h3 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 0.5em;
-}
-
 .lyrics-container {
     display: flex;
-    gap: 2em;
+    gap: 0.5em;
     width: 100%;
 }
 
 #lyrics-output {
     text-align: left;
-    line-height: 1.8;
-    font-size: 1.1em;
+    line-height: 1.7;
+    font-size: 1em;
     flex: 1;
+    min-width: 0;
 }
 
 .chinese-line {
     position: relative;
     padding-left: 35px;
     cursor: pointer;
+    margin-bottom: 0.2em;
 }
 
 #translation-output {
@@ -158,6 +189,7 @@ header p {
     color: #666;
     font-style: italic;
     width: fit-content;
+    padding-right: 3.5em;
 }
 
 .translation-line {
@@ -226,26 +258,77 @@ header p {
     visibility: visible;
 }
 
-.sidebar h3 {
-    margin-top: 0;
-    color: #333;
+.sidebar-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5em;
     border-bottom: 2px solid #eee;
     padding-bottom: 0.5em;
+    margin-bottom: 1em;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1em;
+    color: #999;
+}
+
+.sidebar-toggle {
+    flex: 0 0 auto;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    color: #999;
+    font-size: 1.1em;
+    line-height: 1;
+    padding: 0.15em 0.35em;
+    cursor: pointer;
+}
+
+.sidebar-toggle:hover {
+    background-color: rgba(200, 200, 200, 0.3);
+    color: #666;
+}
+
+/* Minimized sidebar: vertical title strip beside the toggle */
+.sidebar.collapsed .sidebar-header {
+    flex-direction: column;
+    align-items: center;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    gap: 0.6em;
+}
+
+.sidebar.collapsed .sidebar-header h3 {
+    writing-mode: vertical-rl;
+    font-weight: 500;
+    color: #999;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    order: -1;
+}
+
+.sidebar.collapsed #common-words {
+    display: none;
 }
 
 .char-block {
     display: inline-block;
     text-align: center;
     margin: 0 1px;
-    padding: 1px 5px;
+    padding: 1px 3px;
     border-radius: 2px;
     vertical-align: baseline;
     position: relative;
     cursor: pointer;
 }
- 
+
 .character {
-    font-size: 1.3em;
+    font-size: 1.5em;
     font-weight: normal;
     margin: -2px 0 0 0;
 }
@@ -346,7 +429,27 @@ header p {
         flex: none;
         order: 2;
     }
-    
+
+    .sidebar.collapsed {
+        flex: none;
+        width: auto;
+        padding: 0.5em 1.5em;
+    }
+
+    .sidebar.collapsed .sidebar-header {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+    }
+
+    .sidebar.collapsed .sidebar-header h3 {
+        writing-mode: horizontal-tb;
+    }
+
+    .sidebar.collapsed .sidebar-toggle {
+        order: 0;
+    }
+
     .lyrics-display {
         flex: none;
         order: 1;
